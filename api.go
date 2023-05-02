@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
+	// "strings"
 	"github.com/gorilla/mux"
 	"regexp"
 	"strconv"
@@ -30,9 +30,18 @@ type ResultResponse struct {
 }
 
 func FuncHandler(w http.ResponseWriter, r *http.Request) {
-	// Get input expression from URL query parameter
-	input := r.URL.Query().Get("expr")
-	input = strings.ReplaceAll(input, " ", "+")
+	// Parse request body
+	var requestBody struct {
+		Expr string `json:"expr"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{err.Error()})
+		return
+	}
+
+	input := requestBody.Expr
 	inputType := defineType(input)
 	result:= ""
 	var numres float64
@@ -50,13 +59,11 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		numres,err = calculate(input)
 		result = strconv.FormatFloat(numres, 'f', 2, 64)
 	case "date":
-		result = "date"
-	case "addQuestion":
-		result = "addQuestion"
-	case "deleteQuestion":
-		result = "deleteQuestion"
+		// parse so only the date is left
+
+		result = getDayOfWeek(input)
 	case "textQuestion":
-		result = "textQuestion"
+		result = defineQuestionType(input)
 	}
 
 	if err != nil {
@@ -76,7 +83,7 @@ func defineType(input string) string {
 	// define what type is the input
 	textQuestionRegex := regexp.MustCompile(`^[A-Za-z0-9\s\?\.,!]+$`)
 	calculatorRegex := regexp.MustCompile(`^[\d\+\-\*\/\^\(\)]+$`)
-	dateRegex := regexp.MustCompile(`^hariapatanggal(\d{1,2})/(\d{1,2})/(\d{4})$`)
+	dateRegex := regexp.MustCompile(`^hari apa tanggal (\d{1,2})/(\d{1,2})/(\d{4})$`)
 
 	var questionType string
 	switch {
@@ -99,10 +106,8 @@ func (s *APIServer) Start() {
 	// Create router
 	router := mux.NewRouter()
 
-	// define what type is the input
-
 	// Add handler for arithmetic expressions
-	router.HandleFunc("/input", FuncHandler).Methods("GET")
+	router.HandleFunc("/api", FuncHandler).Methods("POST")
 
 	// Start server
 	log.Fatal(http.ListenAndServe(s.port, router))
