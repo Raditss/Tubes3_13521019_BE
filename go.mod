@@ -3,6 +3,7 @@ module github.com/Raditss/Tubes3_13521019_BE
 go 1.20
 
 require (
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/gofiber/fiber/v2 v2.44.0 // indirect

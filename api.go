@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	// "strings"
+	"strings"
 	"github.com/gorilla/mux"
 	"regexp"
 	"strconv"
@@ -42,6 +42,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := requestBody.Expr
+	input = strings.ToLower(input)
 	inputType := defineType(input)
 	result:= ""
 	var numres float64
@@ -59,11 +60,21 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		numres,err = calculate(input)
 		result = strconv.FormatFloat(numres, 'f', 2, 64)
 	case "date":
-		// parse so only the date is left
-
+		// parse so only the date is lef
 		result = getDayOfWeek(input)
 	case "textQuestion":
-		result = defineQuestionType(input)
+		qtype := defineQuestionType(input)
+		switch{
+		case qtype == "add":
+			result = addQuestionToDB(input)
+		case qtype == "del":
+			result = delQuestion(input)
+		case qtype == "question":
+			// result = getAnswer(input)
+		default:
+			result = "unknown"
+		}
+
 	}
 
 	if err != nil {
