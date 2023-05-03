@@ -1,10 +1,11 @@
 package main
 
 import (
-	"regexp"
+	"fmt"
 	"math"
-	"github.com/agnivade/levenshtein"
+	"regexp"
 
+	"github.com/agnivade/levenshtein"
 )
 
 type queries struct {
@@ -43,19 +44,63 @@ func delQuestion(input string) string{
 	return "Pertanyaan berhasil dihapus"
 }
 
-func findClosestMatch(queryArr []queries, query string) (queries, int) {
-    var bestMatch queries
-    minDist := math.MaxInt64
-    for _, q := range queryArr {
-        idx := KMP(q.Question, query)
-        if idx != -1 {
-            dist := levenshtein.ComputeDistance(q.Question, query)
-                minDist = dist
-                bestMatch = q
-            }
-        }
-		return bestMatch, minDist
-    }
+
+func getAnswerKMP(input string) string {
+	var queryArr []queries
+	DB.Find(&queryArr)
+	bestMatch := ""
+	minDist := math.MaxInt32
+
+	for _, query := range queryArr {
+		idx := KMP(query.Question, input)
+		if idx != -1 {
+			if query.Question == input {
+				return query.Answer
+			}
+		}
+		dist := levenshtein.ComputeDistance(query.Question, input)
+		if dist < minDist {
+			bestMatch = query.Answer
+			minDist = dist
+		}
+	}
+	threshold := 0.9 * float64(len(input))
+	fmt.Println(threshold)
+	if float64(minDist) > threshold {
+		return "Pertanyaan tidak ditemukan"
+	}
+	return bestMatch
+}
+
+
+func getAnswerBM(input string) string {
+	var queryArr []queries
+	DB.Find(&queryArr)
+	bestMatch := ""
+	minDist := math.MaxInt32
+
+	for _, query := range queryArr {
+		idx := BM(query.Question, input)
+		if idx != -1 {
+			if query.Question == input {
+				return query.Answer
+			}
+		}
+		dist := levenshtein.ComputeDistance(query.Question, input)
+		if dist < minDist {
+			bestMatch = query.Answer
+			minDist = dist
+		}
+	}
+	threshold := 0.9 * float64(len(input))
+	fmt.Println(threshold)
+	if float64(minDist) > threshold {
+		return "Pertanyaan tidak ditemukan"
+	}
+	return bestMatch
+}
+
+
 
 
 

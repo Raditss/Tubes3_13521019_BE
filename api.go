@@ -32,7 +32,8 @@ type ResultResponse struct {
 func FuncHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	var requestBody struct {
-		Expr string `json:"expr"`
+		Expr 	string `json:"expr"`
+		Alg 	string `json:"alg"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -42,6 +43,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := requestBody.Expr
+	Alg := requestBody.Alg
 	input = strings.ToLower(input)
 	inputType := defineType(input)
 	result:= ""
@@ -70,7 +72,11 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		case qtype == "del":
 			result = delQuestion(input)
 		case qtype == "question":
-			// result = getAnswer(input)
+			if Alg == "KMP"{
+				result = getAnswerKMP(input)
+			}else if Alg == "BM"{
+				result = getAnswerBM(input)
+			}
 		default:
 			result = "unknown"
 		}
