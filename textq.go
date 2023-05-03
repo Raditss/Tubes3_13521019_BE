@@ -64,7 +64,7 @@ func getAnswerKMP(input string) string {
 			minDist = dist
 		}
 	}
-	threshold := 0.9 * float64(len(input))
+	threshold := 0.1 * float64(len(input))
 	fmt.Println(threshold)
 	if float64(minDist) > threshold {
 		return "Pertanyaan tidak ditemukan"
@@ -92,7 +92,7 @@ func getAnswerBM(input string) string {
 			minDist = dist
 		}
 	}
-	threshold := 0.9 * float64(len(input))
+	threshold := 0.1 * float64(len(input))
 	fmt.Println(threshold)
 	if float64(minDist) > threshold {
 		return "Pertanyaan tidak ditemukan"
