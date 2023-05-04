@@ -23,6 +23,6 @@ func main(){
 		port = "8080"
 	}
 
-	server := NewAPIServer(":"+port)
+	server := NewAPIServer("0.0.0.0:"+port)
 	server.Start()
 }
