@@ -98,7 +98,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 
 func defineType(input string) string {
 	// define what type is the input
-	textQuestionRegex := regexp.MustCompile(`^[A-Za-z0-9\s\?\.,!]+$`)
+	// textQuestionRegex := regexp.MustCompile(`^[A-Za-z0-9\s\?\.,!]+$`)
 	calculatorRegex := regexp.MustCompile(`^[\d\+\-\*\/\^\(\)]+$`)
 	dateRegex := regexp.MustCompile(`^hari apa tanggal (\d{1,2})/(\d{1,2})/(\d{4})$`)
 
@@ -108,10 +108,10 @@ func defineType(input string) string {
 		questionType = "calculator"
 	case dateRegex.MatchString(input):
 		questionType = "date"
-	case textQuestionRegex.MatchString(input):
-		questionType = "textQuestion"
+	// case textQuestionRegex.MatchString(input):
+	// 	questionType = "textQuestion"
 	default:
-		questionType = "unknown"
+		questionType = "textQuestion"
 	}
 	return questionType
 }

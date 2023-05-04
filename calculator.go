@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 func calculate(expression string) (float64, error) {
     // Use regular expressions to extract the numbers, operators, and parentheses from the expression
     reNum := regexp.MustCompile(`\d+\.?\d*`)
     reOp := regexp.MustCompile(`[-+*/]`)
+    reParen := regexp.MustCompile(`\(([^\(\)]+)\)`)
     numbers := reNum.FindAllString(expression, -1)
     operators := reOp.FindAllString(expression, -1)
-
+    parens := reParen.FindAllStringSubmatch(expression, -1)
     // Check for missing numbers, operators, or parentheses
     if len(numbers) == 0 {
         return 0, fmt.Errorf("missing numbers in expression")
@@ -20,6 +22,17 @@ func calculate(expression string) (float64, error) {
     if len(operators) == 0 {
         return 0, fmt.Errorf("missing operators in expression")
     }
+    // Process parentheses recursively
+    for _, p := range parens {
+        innerExpr := p[1]
+        innerResult, err := calculate(innerExpr)
+        if err != nil {
+            return 0, err
+        }
+        expression = strings.Replace(expression, p[0], strconv.FormatFloat(innerResult, 'f', -1, 64), 1)
+    }
+    numbers = reNum.FindAllString(expression, -1)
+    operators = reOp.FindAllString(expression, -1)
     // Convert the numbers to floats
     var numFloats []float64
     for _, numStr := range numbers {
@@ -29,8 +42,6 @@ func calculate(expression string) (float64, error) {
         }
         numFloats = append(numFloats, num)
     }
-
-
     // Process multiplication and division next
     for i := 0; i < len(operators); i++ {
         if operators[i] == "*" || operators[i] == "/" {
@@ -61,4 +72,7 @@ func calculate(expression string) (float64, error) {
     // Return the final result
     return result, nil
 }
+
+
+
 

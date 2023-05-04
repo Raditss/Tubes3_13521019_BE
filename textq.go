@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"math"
 	"regexp"
-
+	"strings"
+	"sort"
 	"github.com/agnivade/levenshtein"
 )
 
@@ -45,61 +46,81 @@ func delQuestion(input string) string{
 }
 
 
-func getAnswerKMP(input string) string {
-	var queryArr []queries
-	DB.Find(&queryArr)
-	bestMatch := ""
-	minDist := math.MaxInt32
-
-	for _, query := range queryArr {
-		idx := KMP(query.Question, input)
-		if idx != -1 {
-			if query.Question == input {
-				return query.Answer
-			}
-		}
-		dist := levenshtein.ComputeDistance(query.Question, input)
-		if dist < minDist {
-			bestMatch = query.Answer
-			minDist = dist
-		}
-	}
-	threshold := 0.1 * float64(len(input))
-	fmt.Println(threshold)
-	if float64(minDist) > threshold {
-		return "Pertanyaan tidak ditemukan"
-	}
-	return bestMatch
+type queryResult struct {
+    Question string
+    Answer   string
+    Dist     int
 }
+
+func getAnswerKMP(input string) string {
+    var queryArr []queries
+    DB.Find(&queryArr)
+
+    var results []queryResult
+    minDist := math.MaxInt32
+
+    for _, query := range queryArr {
+        idx := KMP(query.Question, input)
+        if idx != -1 {
+            if query.Question == input {
+                return query.Answer
+            }
+        }
+        dist := levenshtein.ComputeDistance(query.Question, input)
+        if dist < minDist {
+            minDist = dist
+            results = []queryResult{{Question: query.Question, Answer: query.Answer, Dist: dist}}
+        } else if dist == minDist {
+            results = append(results, queryResult{Question: query.Question, Answer: query.Answer, Dist: dist})
+        }
+    }
+    threshold := 0.1 * float64(len(input))
+    if float64(minDist) > threshold {
+        topResults := make([]string, 0, 3)
+        sort.Slice(results, func(i, j int) bool {
+            return results[i].Dist < results[j].Dist
+        })
+        for i := 0; i < len(results) && i < 3; i++ {
+            topResults = append(topResults, results[i].Question)
+        }
+        return fmt.Sprintf("Pertanyaan tidak ditemukan. Pertanyaan yang mirip: %s", strings.Join(topResults, ", "))
+    }
+    return results[0].Answer
+}
+
 
 
 func getAnswerBM(input string) string {
-	var queryArr []queries
-	DB.Find(&queryArr)
-	bestMatch := ""
-	minDist := math.MaxInt32
+    var queryArr []queries
+    DB.Find(&queryArr)
 
-	for _, query := range queryArr {
-		idx := BM(query.Question, input)
-		if idx != -1 {
-			if query.Question == input {
-				return query.Answer
-			}
-		}
-		dist := levenshtein.ComputeDistance(query.Question, input)
-		if dist < minDist {
-			bestMatch = query.Answer
-			minDist = dist
-		}
-	}
-	threshold := 0.1 * float64(len(input))
-	fmt.Println(threshold)
-	if float64(minDist) > threshold {
-		return "Pertanyaan tidak ditemukan"
-	}
-	return bestMatch
+    var results []queryResult
+    minDist := math.MaxInt32
+
+    for _, query := range queryArr {
+        idx := BM(query.Question, input)
+        if idx != -1 {
+            if query.Question == input {
+                return query.Answer
+            }
+        }
+        dist := levenshtein.ComputeDistance(query.Question, input)
+        if dist < minDist {
+            minDist = dist
+            results = []queryResult{{Question: query.Question, Answer: query.Answer, Dist: dist}}
+        } else if dist == minDist {
+            results = append(results, queryResult{Question: query.Question, Answer: query.Answer, Dist: dist})
+        }
+    }
+    threshold := 0.1 * float64(len(input))
+    if float64(minDist) > threshold {
+        sort.Slice(results, func(i, j int) bool {
+            return results[i].Dist < results[j].Dist
+        })
+        return fmt.Sprintf("Pertanyaan tidak ditemukan. Pertanyaan yang mirip: %s, %s, %s", results[0].Question, results[1].Question, results[2].Question)
+    }
+    return results[0].Answer
 }
-
 
 
 
