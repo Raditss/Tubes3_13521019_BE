@@ -20,9 +20,9 @@ func main(){
 	log.Println("database connection successful")
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = ":8080"
+		port = "8080"
 	}
 
-	server := NewAPIServer("0.0.0.0"+port)
+	server := NewAPIServer("0.0.0.0:"+port)
 	server.Start()
 }
