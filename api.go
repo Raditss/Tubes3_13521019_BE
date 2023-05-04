@@ -130,8 +130,8 @@ func (s *APIServer) Start() {
 
 	// Add handler for arithmetic expressions
 	router.HandleFunc("/api/question", FuncHandler).Methods("POST")
-	// router.HandleFunc("/upconv",upconvHandler).Methods("POST")
-	// router.HandleFunc("/getconv",getconvHandler).Methods("POST")
+	// router.HandleFunc("/api/upconv",upconvHandler).Methods("POST")
+	// router.HandleFunc("/api/getconv",getconvHandler).Methods("POST")
 
 	// Add CORS middleware to router
 	handler := corsMiddleware(router)
