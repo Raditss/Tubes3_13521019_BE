@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
-	"strings"
-	"github.com/gorilla/mux"
 	"regexp"
 	"strconv"
+	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func JSONWriter(w http.ResponseWriter, data interface{}) {
@@ -41,12 +43,13 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(ErrorResponse{err.Error()})
 		return
 	}
-
 	input := requestBody.Expr
+	parts:=strings.Split(input, "?")
 	Alg := requestBody.Alg
-	input = strings.ToLower(input)
+	input = strings.ToLower(parts[0])
 	inputType := defineType(input)
 	result:= ""
+	fmt.Print(input)
 	var numres float64
 	var err error
 	if input == "" {
@@ -120,6 +123,7 @@ func defineType(input string) string {
 func NewAPIServer(port string) *APIServer {
 	return &APIServer{port: port}
 }
+
 func (s *APIServer) Start() {
 	// Create router
 	router := mux.NewRouter()
@@ -129,6 +133,23 @@ func (s *APIServer) Start() {
 	// router.HandleFunc("/upconv",upconvHandler).Methods("POST")
 	// router.HandleFunc("/getconv",getconvHandler).Methods("POST")
 
+	// Add CORS middleware to router
+	handler := corsMiddleware(router)
+
 	// Start server
-	log.Fatal(http.ListenAndServe(s.port, router))
+	log.Fatal(http.ListenAndServe(s.port, handler))
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        w.Header().Set("Access-Control-Max-Age", "86400") // 24 hours
+        if r.Method == "OPTIONS" {
+            w.WriteHeader(http.StatusOK)
+            return
+        }
+        next.ServeHTTP(w, r)
+    })
 }
