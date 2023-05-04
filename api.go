@@ -80,8 +80,8 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			result = "unknown"
 		}
-
 	}
+	// push to conv db
 
 	if err != nil {
 		// Return error if input expression is invalid
@@ -93,6 +93,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 	// Return successful result
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ResultResponse{result})
+
 }
 
 
@@ -124,7 +125,9 @@ func (s *APIServer) Start() {
 	router := mux.NewRouter()
 
 	// Add handler for arithmetic expressions
-	router.HandleFunc("/api", FuncHandler).Methods("POST")
+	router.HandleFunc("/api/question", FuncHandler).Methods("POST")
+	// router.HandleFunc("/upconv",upconvHandler).Methods("POST")
+	// router.HandleFunc("/getconv",getconvHandler).Methods("POST")
 
 	// Start server
 	log.Fatal(http.ListenAndServe(s.port, router))

@@ -114,3 +114,44 @@ func min(a, b int) int {
     }
     return b
 }
+
+func levenshteinDistance(s, t string) int {
+    n := len(s)
+    m := len(t)
+    if n == 0 {
+        return m
+    }
+    if m == 0 {
+        return n
+    }
+
+    // Create a matrix to store the distances between prefixes of s and t
+    // The (i,j)th entry of the matrix represents the distance between the first i characters of s and the first j characters of t
+    matrix := make([][]int, n+1)
+    for i := range matrix {
+        matrix[i] = make([]int, m+1)
+    }
+
+    // Initialize the first row and column of the matrix
+    for i := 0; i <= n; i++ {
+        matrix[i][0] = i
+    }
+    for j := 0; j <= m; j++ {
+        matrix[0][j] = j
+    }
+
+    // Fill in the rest of the matrix
+    for i := 1; i <= n; i++ {
+        for j := 1; j <= m; j++ {
+            substitutionCost := 1
+            if s[i-1] == t[j-1] {
+                substitutionCost = 0
+            }
+            matrix[i][j] = min(matrix[i-1][j]+1, min(matrix[i][j-1]+1, matrix[i-1][j-1]+substitutionCost))
+        }
+    }
+
+    // The distance between s and t is the bottom right entry of the matrix
+    return matrix[n][m]
+}
+
