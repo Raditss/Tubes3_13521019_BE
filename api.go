@@ -49,38 +49,40 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	result := ""
 	var resultarr = make([]string, len(parts))
-	for i := 0; i < len(parts)-1; i++ {
-		input = strings.ToLower(parts[i])
-		inputType := defineType(input)
-		var numres float64
-		fmt.Println(inputType)
-		switch inputType {
-		case "calculator":
-			numres, err = calculate(input)
-			resultarr[i] = strconv.FormatFloat(numres, 'f', 2, 64)
-			fmt.Println(resultarr[i])
-		case "date":
-			resultarr[i] = getDayOfWeek(input)
-			fmt.Println(resultarr[i])
-		case "textQuestion":
-			qtype := defineQuestionType(input)
-			switch {
-			case qtype == "add":
-				resultarr[i] = addQuestionToDB(input)
+	if len(parts) > 1 {
+		for i := 0; i < len(parts)-1; i++ {
+			input = strings.ToLower(parts[i])
+			inputType := defineType(input)
+			var numres float64
+			fmt.Println(inputType)
+			switch inputType {
+			case "calculator":
+				numres, err = calculate(input)
+				resultarr[i] = strconv.FormatFloat(numres, 'f', 2, 64)
 				fmt.Println(resultarr[i])
-			case qtype == "del":
-				resultarr[i] = delQuestion(input)
+			case "date":
+				resultarr[i] = getDayOfWeek(input)
 				fmt.Println(resultarr[i])
-			case qtype == "question":
-				if Alg == "KMP" {
-					resultarr[i] = getAnswerKMP(input)
+			case "textQuestion":
+				qtype := defineQuestionType(input)
+				switch {
+				case qtype == "add":
+					resultarr[i] = addQuestionToDB(input)
 					fmt.Println(resultarr[i])
-				} else if Alg == "BM" {
-					resultarr[i] = getAnswerBM(input)
+				case qtype == "del":
+					resultarr[i] = delQuestion(input)
 					fmt.Println(resultarr[i])
+				case qtype == "question":
+					if Alg == "KMP" {
+						resultarr[i] = getAnswerKMP(input)
+						fmt.Println(resultarr[i])
+					} else if Alg == "BM" {
+						resultarr[i] = getAnswerBM(input)
+						fmt.Println(resultarr[i])
+					}
+				default:
+					resultarr[i] = ""
 				}
-			default:
-				resultarr[i] = ""
 			}
 		}
 	}
@@ -91,7 +93,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(ErrorResponse{err.Error()})
 		return
 	}
-	result= strings.Join(resultarr, " ; ")
+	result = strings.Join(resultarr, " ; ")
 
 	// Return successful result
 	w.WriteHeader(http.StatusOK)
@@ -129,7 +131,6 @@ func (s *APIServer) Start() {
 
 	// Add handler for arithmetic expressions
 	router.HandleFunc("/api/question", FuncHandler).Methods("POST")
-
 
 	// Add CORS middleware to router
 	handler := corsMiddleware(router)
