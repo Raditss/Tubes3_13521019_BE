@@ -26,15 +26,33 @@ func defineQuestionType(question string) string {
 	}
 }
 
-func addQuestionToDB(input string) string {
-	addre := regexp.MustCompile(`^\s*tambahkan\s+pertanyaan\s+(.+)\s+dengan\s+jawaban\s+(.+)$`)
-	res := addre.FindStringSubmatch(input)
-	var q queries
-	q.Question = res[1]
-	q.Answer = res[2]
-	DB.Create(&q)
-	return "Pertanyaan berhasil ditambahkan"
+func addQuestionToDB(input string) (result string, err error) {
+    addre := regexp.MustCompile(`^\s*tambahkan\s+pertanyaan\s+(.+)\s+dengan\s+jawaban\s+(.+)$`)
+    res := addre.FindStringSubmatch(input)
+    if len(res) != 3 {
+        return "", fmt.Errorf("invalid input format")
+    }
+    var q queries
+    err = DB.Where("question = ?", res[1]).Find(&q).Error
+    if err == nil {
+        // question already exists, update the answer
+        q.Answer = res[2]
+		err = DB.Model(&q).Where("question = ?", res[1]).Save(&q).Error
+        if err != nil {
+            return "", fmt.Errorf("failed to update question: %v", err)
+        }
+        return "Jawaban diupdate", nil
+    }
+    // new question, insert into database
+    q.Question = res[1]
+    q.Answer = res[2]
+    err = DB.Create(&q).Error
+    if err != nil {
+        return "", fmt.Errorf("failed to insert question: %v", err)
+    }
+    return "Pertanyaan berhasil ditambahkan", nil
 }
+
 
 func delQuestion(input string) string {
 	delre := regexp.MustCompile(`^\s*hapus\s+pertanyaan\s+(.+)$`)

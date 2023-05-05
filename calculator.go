@@ -5,12 +5,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+    "math"
 )
 
 func calculate(expression string) (float64, error) {
     // Use regular expressions to extract the numbers, operators, and parentheses from the expression
     reNum := regexp.MustCompile(`\d+\.?\d*`)
-    reOp := regexp.MustCompile(`[-+*/]`)
+    reOp := regexp.MustCompile(`[-+*/^]`)
     reParen := regexp.MustCompile(`\(([^\(\)]+)\)`)
     numbers := reNum.FindAllString(expression, -1)
     operators := reOp.FindAllString(expression, -1)
@@ -42,6 +43,20 @@ func calculate(expression string) (float64, error) {
         }
         numFloats = append(numFloats, num)
     }
+
+    // process power before multiplication
+    for i := 0; i < len(operators); i++ {
+        if operators[i] == "^" {
+            num1 := numFloats[i]
+            num2 := numFloats[i+1]
+            var temp float64
+            temp = math.Pow(num1, num2)
+            operators = append(operators[:i], operators[i+1:]...)
+            numFloats = append(numFloats[:i], append([]float64{temp}, numFloats[i+2:]...)...)
+            i--
+        }
+    }
+
     // Process multiplication and division next
     for i := 0; i < len(operators); i++ {
         if operators[i] == "*" || operators[i] == "/" {
