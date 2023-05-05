@@ -71,7 +71,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		qtype := defineQuestionType(input)
 		switch{
 		case qtype == "add":
-			result,err = addQuestionToDB(input)
+			result= addQuestionToDB(input)
 		case qtype == "del":
 			result = delQuestion(input)
 		case qtype == "question":
