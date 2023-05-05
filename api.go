@@ -96,7 +96,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(ErrorResponse{err.Error()})
 		return
 	}
-	result = strings.Join(resultarr, " ; ")
+	result = strings.Join(resultarr, " ㋡ ")
 
 	// Return successful result
 	w.WriteHeader(http.StatusOK)
